@@ -36,4 +36,9 @@ class dns::params {
     $publicviewpath   = "${dnsdir}/zones.conf"
 
     $forwarders       = []
+
+    $rndc_secret      = "pQLt9ZVp02skNNaq5CgkzQ=="
+    $rndcconf_path    = "/etc/rndc.conf"
+    $designatepath    = "/var/named/data/bind9"
+    $designatefile    = "/var/named/data/bind9/zones.config"
 }

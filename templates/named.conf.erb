@@ -2,15 +2,41 @@
 
 include "<%= @rndckeypath %>";
 
-controls  {
-	inet 127.0.0.1 port 953 allow { 127.0.0.1; } keys { "rndc-key"; };
-};
 
 options  {
-	include "<%= @optionspath %>";
+        listen-on port 53 { 127.0.0.1; };
+        listen-on-v6 port 53 { ::1; };
+        directory       "/var/named";
+        dump-file       "/var/named/data/cache_dump.db";
+        statistics-file "/var/named/data/named_stats.txt";
+        memstatistics-file "/var/named/data/named_mem_stats.txt";
+        allow-query     { localhost; };
+        recursion yes;
+
+        dnssec-enable yes;
+        dnssec-validation yes;
+        dnssec-lookaside auto;
+
+        /* Path to ISC DLV key */
+        bindkeys-file "/etc/named.iscdlv.key";
+
+        managed-keys-directory "/var/named/dynamic";
+        include "<%= @optionspath %>";
 };
 
 include "<%= @localzonepath %>";
 
 // Public view read by Server Admin
 include "<%= @publicviewpath %>";
+
+// Designate Path
+include "<%= @designatepath %>";
+
+# Use with the following in named.conf, adjusting the allow list as needed
+key "rndc-key" {
+      algorithm hmac-md5;
+      secret "<%= @rndc_secret %>";
+};
+controls  {
+        inet 127.0.0.1 port 953 allow { 127.0.0.1; } keys { "rndc-key"; };
+};

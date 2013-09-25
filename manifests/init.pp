@@ -1,5 +1,6 @@
 class dns(
   $namedconf_path = $dns::params::namedconf_path,
+  $rndcconf_path  = $dns::params::rndcconf_path,
   $dnsdir = $dns::params::dnsdir,
   $dns_server_package = $dns::params::dns_server_package,
   $rndckeypath = $dns::params::rndckeypath,
@@ -11,7 +12,9 @@ class dns(
   $namedservicename = $dns::params::namedservicename,
   $zonefilepath = $dns::params::zonefilepath,
   $localzonepath = $dns::params::localzonepath,
-  $forwarders = $dns::params::forwarders
+  $forwarders = $dns::params::forwarders,
+  $designatepath = $dns::params::designatepath,
+  $designatefile = $dns::params::designatefile,
 ) inherits dns::params {
 
   package { 'dns':
@@ -36,6 +39,12 @@ class dns(
   }
 
   file {
+    $rndcconf_path:
+      owner   => root,
+      group   => $dns::params::group,
+      mode    => '0640',
+      notify  => Service[$namedservicename],
+      content => template('dns/rndc.conf.erb');
     $namedconf_path:
       owner   => root,
       group   => $dns::params::group,
@@ -75,17 +84,29 @@ class dns(
       require    => Package['dns'];
   }
 
-  exec { 'create-rndc.key':
-    command => "/usr/sbin/rndc-confgen -r /dev/urandom -a -c ${rndckeypath}",
-    cwd     => '/tmp',
-    creates => $rndckeypath,
-    require => Package['dns'],
-  }
+  #exec { 'create-rndc.key':
+  #  command => "/usr/sbin/rndc-confgen -r /dev/urandom -a -c ${rndckeypath}",
+  #  cwd     => '/tmp',
+  #  creates => $rndckeypath,
+  #  require => Package['dns'],
+  #}
 
-  file { $rndckeypath:
+  #file { $rndckeypath:
+  #  owner   => 'root',
+  #  group   => $dns::params::group,
+  #  mode    => '0640',
+  #  require => Exec['create-rndc.key'],
+  #}
+
+  file { $designatepath:
+    ensure  => directory,
+    owner   => 'named',
+    group   => $dns::params::group,
+    mode    => '0640',
+  }
+  file { $designatefile:
     owner   => 'root',
     group   => $dns::params::group,
     mode    => '0640',
-    require => Exec['create-rndc.key'],
   }
 }
