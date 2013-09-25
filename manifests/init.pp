@@ -1,3 +1,4 @@
+# Class dns
 class dns(
   $namedconf_path = $dns::params::namedconf_path,
   $rndcconf_path  = $dns::params::rndcconf_path,
@@ -104,9 +105,17 @@ class dns(
     group   => $dns::params::group,
     mode    => '0640',
   }
+
+  exec { 'create-designatefile':
+    command => "/bin/touch ${designatefile}",
+    creates => $designatefile,
+    require => File[$designatepath],
+  }
+
   file { $designatefile:
     owner   => 'root',
     group   => $dns::params::group,
     mode    => '0640',
+    require => Exec['create-designatefile'],
   }
 }
