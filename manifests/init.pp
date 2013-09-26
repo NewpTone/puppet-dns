@@ -113,9 +113,9 @@ class dns(
   }
 
   file { $designatefile:
-    owner   => 'root',
+    owner   => 'named',
     group   => $dns::params::group,
-    mode    => '0640',
+    mode    => '0660',
     require => Exec['create-designatefile'],
   }
 }
