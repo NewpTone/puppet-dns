@@ -16,7 +16,12 @@ class dns(
   $forwarders = $dns::params::forwarders,
   $designatepath = $dns::params::designatepath,
   $designatefile = $dns::params::designatefile,
+  $designate     =  true,
 ) inherits dns::params {
+
+  if $designate {
+    include dns::designate
+  }
 
   package { 'dns':
     ensure => installed,
@@ -82,6 +87,7 @@ class dns(
       enable     => true,
       hasstatus  => true,
       hasrestart => true,
+      subscribe  => File[$namedconf_path],
       require    => Package['dns'];
   }
 
@@ -99,23 +105,23 @@ class dns(
   #  require => Exec['create-rndc.key'],
   #}
 
-  file { $designatepath:
-    ensure  => directory,
-    owner   => 'named',
-    group   => $dns::params::group,
-    mode    => '0640',
-  }
+  #file { $designatepath:
+  #  ensure  => directory,
+  #  owner   => 'named',
+  #  group   => $dns::params::group,
+  #  mode    => '0640',
+  #}
 
-  exec { 'create-designatefile':
-    command => "/bin/touch ${designatefile}",
-    creates => $designatefile,
-    require => File[$designatepath],
-  }
+  #exec { 'create-designatefile':
+  #  command => "/bin/touch ${designatefile}",
+  #  creates => $designatefile,
+  #  require => File[$designatepath],
+  #}
 
-  file { $designatefile:
-    owner   => 'named',
-    group   => $dns::params::group,
-    mode    => '0660',
-    require => Exec['create-designatefile'],
-  }
+  #file { $designatefile:
+  #  owner   => 'named',
+  #  group   => $dns::params::group,
+  #  mode    => '0660',
+  #  require => Exec['create-designatefile'],
+  #}
 }
