@@ -14,14 +14,8 @@ class dns(
   $zonefilepath = $dns::params::zonefilepath,
   $localzonepath = $dns::params::localzonepath,
   $forwarders = $dns::params::forwarders,
-  $designatepath = $dns::params::designatepath,
-  $designatefile = $dns::params::designatefile,
-  $designate     =  true,
 ) inherits dns::params {
 
-  if $designate {
-    include dns::designate
-  }
 
   package { 'dns':
     ensure => installed,
@@ -91,37 +85,19 @@ class dns(
       require    => Package['dns'];
   }
 
-  #exec { 'create-rndc.key':
-  #  command => "/usr/sbin/rndc-confgen -r /dev/urandom -a -c ${rndckeypath}",
-  #  cwd     => '/tmp',
-  #  creates => $rndckeypath,
-  #  require => Package['dns'],
-  #}
+  if !$rndc_secret {
+    exec { 'create-rndc.key':
+      command => "/usr/sbin/rndc-confgen -r /dev/urandom -a -c ${rndckeypath}",
+      cwd     => '/tmp',
+      creates => $rndckeypath,
+      require => Package['dns'],
+    }
 
-  #file { $rndckeypath:
-  #  owner   => 'root',
-  #  group   => $dns::params::group,
-  #  mode    => '0640',
-  #  require => Exec['create-rndc.key'],
-  #}
-
-  #file { $designatepath:
-  #  ensure  => directory,
-  #  owner   => 'named',
-  #  group   => $dns::params::group,
-  #  mode    => '0640',
-  #}
-
-  #exec { 'create-designatefile':
-  #  command => "/bin/touch ${designatefile}",
-  #  creates => $designatefile,
-  #  require => File[$designatepath],
-  #}
-
-  #file { $designatefile:
-  #  owner   => 'named',
-  #  group   => $dns::params::group,
-  #  mode    => '0660',
-  #  require => Exec['create-designatefile'],
-  #}
+    file { $rndckeypath:
+      owner   => 'root',
+      group   => $dns::params::group,
+      mode    => '0640',
+      require => Exec['create-rndc.key'],
+    }
+  }
 }
